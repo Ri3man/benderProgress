@@ -114,8 +114,6 @@ The service is responsible for:
 
 ### Signing Process
 
-The transaction signing process has been extensively optimized and follows these steps:
-
 1. **Transaction Preparation**: The transaction is serialized into the Solana message format
 2. **Message Handling**: The message is base64 encoded for transmission to KMS
 3. **KMS Signing**: The message is signed by the KMS service using P-256 with SHA256
