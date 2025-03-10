@@ -1,7 +1,13 @@
 # Wallet Service - Progress Document
 
 Herein, the full architecture.
+
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {
+  'background': '#333333',
+  'primaryTextColor': '#ffffff',
+  'secondaryTextColor': '#ffffff'
+}}}%%
 sequenceDiagram
     participant User as "External Client"
     participant Queue as "RabbitMQ Queue"
