@@ -234,6 +234,42 @@ The service is responsible for:
 
 ---
 
+## Redis Integration
+
+### Caching Strategy
+
+- **Wallet Information Caching**: Frequently accessed wallet data is cached to reduce storage I/O
+- **Blockchain Data Caching**: Network-retrieved data like account info and token balances are cached
+- **Rate Limit Enforcement**: Redis-based rate limiting to prevent API abuse
+- **Distributed Locking**: Coordination of concurrent operations across service instances
+- **Circuit Breaker State**: Shared circuit breaker state across service instances
+
+### Performance Optimizations
+
+- **Connection Pooling**: Efficient reuse of Redis connections
+- **Pipelining**: Batched Redis operations for reduced network overhead
+- **Serialization Strategy**: Optimized data serialization for minimal memory usage
+- **TTL Management**: Appropriate time-to-live settings for different data types
+- **Memory Usage Monitoring**: Tracking Redis memory consumption
+
+### Resilience Features
+
+- **Reconnection Logic**: Automatic reconnection after Redis connectivity issues
+- **Command Timeouts**: Prevention of blocking operations
+- **Replica Failover**: Smooth transition during Redis primary node failures
+- **Cache Stampede Prevention**: Strategies to prevent concurrent cache rebuilds
+- **Degraded Operation**: Ability to function with reduced capabilities when Redis is unavailable
+
+### Security Considerations
+
+- **TLS Encryption**: Secure communication with Redis
+- **Authentication**: Password-based Redis authentication
+- **Network Isolation**: Redis deployed in private network
+- **Data Sanitization**: Careful validation of all cached data
+- **No Sensitive Data**: Ensuring sensitive information is never cached
+
+---
+
 ## Error Handling & Resilience
 
 ### Error Handling Strategy
@@ -336,42 +372,5 @@ The Wallet Service provides a documented API for client interactions.
 - **Edge Cases**: Unusual inputs and conditions
 - **Security**: Authentication and authorization checks
 
----
-
-## Redis Integration
-
-### Caching Strategy
-
-- **Wallet Information Caching**: Frequently accessed wallet data is cached to reduce storage I/O
-- **Blockchain Data Caching**: Network-retrieved data like account info and token balances are cached
-- **Rate Limit Enforcement**: Redis-based rate limiting to prevent API abuse
-- **Distributed Locking**: Coordination of concurrent operations across service instances
-- **Circuit Breaker State**: Shared circuit breaker state across service instances
-
-### Performance Optimizations
-
-- **Connection Pooling**: Efficient reuse of Redis connections
-- **Pipelining**: Batched Redis operations for reduced network overhead
-- **Serialization Strategy**: Optimized data serialization for minimal memory usage
-- **TTL Management**: Appropriate time-to-live settings for different data types
-- **Memory Usage Monitoring**: Tracking Redis memory consumption
-
-### Resilience Features
-
-- **Reconnection Logic**: Automatic reconnection after Redis connectivity issues
-- **Command Timeouts**: Prevention of blocking operations
-- **Replica Failover**: Smooth transition during Redis primary node failures
-- **Cache Stampede Prevention**: Strategies to prevent concurrent cache rebuilds
-- **Degraded Operation**: Ability to function with reduced capabilities when Redis is unavailable
-
-### Security Considerations
-
-- **TLS Encryption**: Secure communication with Redis
-- **Authentication**: Password-based Redis authentication
-- **Network Isolation**: Redis deployed in private network
-- **Data Sanitization**: Careful validation of all cached data
-- **No Sensitive Data**: Ensuring sensitive information is never cached
-
----
 
 *This document will be updated as the project evolves. Last updated: March 10, 2025.* 
