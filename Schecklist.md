@@ -10,11 +10,10 @@
 6. [API Security](#api-security)
 7. [Message Queue Security](#message-queue-security)
 8. [Error Handling Security](#error-handling-security)
-9. [Deployment Security](#deployment-security)
-10. [Runtime Security](#runtime-security)
-11. [Authentication & Authorization](#authentication--authorization)
-12. [Monitoring & Alerting Security](#monitoring--alerting-security)
-13. [Solana Blockchain Security](#solana-blockchain-security)
+9. [Runtime Security](#runtime-security)
+10. [Authentication & Authorization](#authentication--authorization)
+11. [Monitoring & Alerting Security](#monitoring--alerting-security)
+12. [Solana Blockchain Security](#solana-blockchain-security)
 
 ---
 
