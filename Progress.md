@@ -1,4 +1,4 @@
-# Wallet Service - Comprehensive Progress Document
+# Wallet Service - Progress Document
 
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
@@ -14,14 +14,6 @@
 11. [Deployment Considerations](#deployment-considerations)
 12. [Future Enhancements](#future-enhancements)
 13. [Redis Integration](#redis-integration)
-
----
-
-Herein, the Wallet Service, responsible for securely managing cryptographic wallets, signing transactions, and handling cryptocurrency operations. This document provides an overview of the service's design, implementation, security measures, and operational aspects.
-
-The service implements a security model that leverages Google Cloud KMS for cryptographic operations such that private keys never exist in plaintext within the application. It provides a reliable API for wallet creation, transaction signing, and balance management through a message queue architecture.
-
----
 
 ## Architecture Overview
 
