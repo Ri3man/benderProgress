@@ -17,8 +17,6 @@
 
 ## Architecture Overview
 
-The Wallet Service follows a modern microservice architecture with the following key design principles:
-
 ### Design Patterns
 - **Hexagonal Architecture**: Clear separation between domain logic, application services, and infrastructure
 - **Message-Driven Design**: Asynchronous communication via RabbitMQ
@@ -76,8 +74,6 @@ The service is responsible for:
 
 ### Key Security Model
 
-The Wallet Service implements a zero-trust security model where private keys are never exposed to the application:
-
 1. **Key Generation**: When a new wallet is created, a key pair is generated in Google Cloud KMS
 2. **Key Storage**: Only the public key and a reference to the KMS key are stored in the service
 3. **Signing Operations**: All signing operations are performed remotely within KMS
@@ -106,8 +102,6 @@ The Wallet Service implements a zero-trust security model where private keys are
 ---
 
 ## KMS Integration
-
-The Wallet Service leverages Google Cloud KMS for cryptographic operations, providing security for cryptocurrency keys.
 
 ### Key Management
 
@@ -148,8 +142,6 @@ The transaction signing process has been extensively optimized and follows these
 
 ## Message Queue System
 
-The Wallet Service uses RabbitMQ as its message broker, providing asynchronous communication with other services.
-
 ### Queue Architecture
 
 - **Exchange Design**: Topic-based exchange for routing flexibility
@@ -181,8 +173,6 @@ The Wallet Service uses RabbitMQ as its message broker, providing asynchronous c
 ---
 
 ## Transaction Processing
-
-The Wallet Service implements a robust transaction processing pipeline for cryptocurrency operations.
 
 ### Transaction Creation
 
@@ -216,8 +206,6 @@ The Wallet Service implements a robust transaction processing pipeline for crypt
 
 ## Monitoring & Metrics
 
-The Wallet Service implements monitoring and metrics collection for operational visibility.
-
 ### Health Monitoring
 
 - **Component Health Checks**: Regular verification of all system components
@@ -249,8 +237,6 @@ The Wallet Service implements monitoring and metrics collection for operational 
 ---
 
 ## Error Handling & Resilience
-
-The Wallet Service implements robust error handling and resilience patterns to maintain reliability.
 
 ### Error Handling Strategy
 
@@ -324,8 +310,6 @@ The Wallet Service provides a documented API for client interactions.
 
 ## Testing Framework
 
-The Wallet Service implements a testing strategy to ensure reliability.
-
 ### Testing Levels
 
 - **Unit Tests**: Isolated testing of individual components
@@ -357,8 +341,6 @@ The Wallet Service implements a testing strategy to ensure reliability.
 ---
 
 ## Deployment Considerations
-
-The Wallet Service is designed for container based deployment in Kubernetes.
 
 ### Configuration Management
 
@@ -392,8 +374,6 @@ The Wallet Service is designed for container based deployment in Kubernetes.
 
 ## Future Enhancements
 
-The following enhancements are planned for future iterations:
-
 ### Technical Improvements
 
 - **Multi-chain Support**: Expansion to additional blockchains
@@ -418,8 +398,6 @@ The following enhancements are planned for future iterations:
 ---
 
 ## Redis Integration
-
-The Wallet Service incorporates Redis for enhanced performance and scalability.
 
 ### Caching Strategy
 
