@@ -1,20 +1,95 @@
 # Wallet Service - Progress Document
 
-## Table of Contents
-1. [Architecture Overview](#architecture-overview)
-2. [Core Components](#core-components)
-3. [Security Implementation](#security-implementation)
-4. [KMS Integration](#kms-integration)
-5. [Message Queue System](#message-queue-system)
-6. [Transaction Processing](#transaction-processing)
-7. [Monitoring & Metrics](#monitoring--metrics)
-8. [Error Handling & Resilience](#error-handling--resilience)
-9. [API Documentation](#api-documentation)
-10. [Testing Framework](#testing-framework)
-11. [Deployment Considerations](#deployment-considerations)
-12. [Future Enhancements](#future-enhancements)
-13. [Redis Integration](#redis-integration)
+Herein, the full architecture.
+```mermaid
+sequenceDiagram
+    participant User as "External Client"
+    participant Queue as "RabbitMQ Queue"
+    participant Handler as "MessageHandler"
+    participant WalletService
+    participant SecureKMSService
+    participant GCPKMS as "GCP KMS"
+    participant Solana as "Solana Blockchain"
+    participant Redis as "Redis"
+    participant RateLimitService as "RateLimitService"
+    participant TransactionMetrics as "TransactionMetrics"
+    participant Logger as "Logger"
 
+    %% Step 1: User initiates wallet creation
+    User->>Queue: Send CreateWalletCommand(userId, label)
+    Note over Queue: Message enqueued with durable flag, 4KB aligned writes
+    Queue->>Handler: Consume message (AMQP 0-9-1, 128-bit correlationId)
+    Handler->>Handler: Validate payload (userId length, label format)
+    Handler->>RateLimitService: Check rate limit for "CREATE_WALLET"
+    RateLimitService->>Redis: Query token bucket (key: "rate:{userId}:CREATE_WALLET")
+    Redis-->>RateLimitService: Return available tokens (uint32)
+    RateLimitService-->>Handler: Allow if tokens > 0
+    Handler->>Redis: Check message ID (anti-replay, SHA-256 hash)
+    Redis-->>Handler: Not processed
+    Handler->>WalletService: createWallet(userId, label)
+
+    %% Step 2: WalletService creates wallet
+    WalletService->>WalletService: Validate inputs (userId length, wallet limit)
+    WalletService->>SecureKMSService: generateKeypair(userId, label)
+    SecureKMSService->>GCPKMS: createCryptoKey(algorithm: ED25519, 256-bit key)
+    Note over GCPKMS: Generates 256-bit ED25519 private key, returns keyId, PEM-encoded publicKey
+    GCPKMS-->>SecureKMSService: keyId, publicKey (PEM)
+    SecureKMSService->>SecureKMSService: Parse PEM to extract 32-byte ED25519 publicKey (ASN.1 DER)
+    SecureKMSService-->>WalletService: WalletInfo(walletId, publicKey, kmsKeyId)
+    WalletService->>WalletService: Encrypt metadata (AES-256-GCM, 256-bit key, 96-bit IV)
+    WalletService->>Filesystem: Save  wallet info (file: "userId/walletId.json", perms 0600)
+    WalletService-->>Handler: WalletInfo
+    Handler-->>Queue: Publish CreateWalletResponse(walletId, publicKey)
+
+    %% Step 3: User initiates SOL transfer
+    User->>Queue: Send TransferSolCommand(userId, toAddress, amount, walletId)
+    Note over Queue: Message enqueued with durable flag, 4KB aligned writes
+    Queue->>Handler: Consume message (AMQP 0-9-1, 128-bit correlationId)
+    Handler->>Handler: Validate payload (toAddress format, amount bounds)
+    Handler->>RateLimitService: Check rate limit for "TRANSFER_SOL"
+    RateLimitService->>Redis: Query token bucket (key: "rate:{userId}:TRANSFER_SOL")
+    Redis-->>RateLimitService: Return available tokens (uint32)
+    RateLimitService-->>Handler: Allow if tokens > 0
+    Handler->>Redis: Check message ID (anti-replay, SHA-256 hash)
+    Redis-->>Handler: Not processed
+    Handler->>WalletService: transferSol(userId, toAddress, amount, walletId)
+
+    %% Step 4: WalletService prepares Solana transaction
+    WalletService->>WalletService: Verify wallet ownership (userId, walletId)
+    WalletService->>Solana: getLatestBlockhash() (HTTP GET, JSON-RPC)
+    Note over Solana: Returns 32-byte blockhash, 64-bit slot number
+    Solana-->>WalletService: blockhash
+    WalletService->>WalletService: Create Transaction(transfer instruction, feePayer)
+    Note over WalletService: Adds SystemProgram.transfer, 64-bit lamports amount
+    WalletService->>WalletService: Add priority fee (ComputeBudgetProgram, 32-bit microLamports)
+    WalletService->>SecureKMSService: signTransaction(userId, walletId, transaction)
+
+    %% Step 5: SecureKMSService signs with GCP KMS
+    SecureKMSService->>SecureKMSService: Serialize transaction message (64-byte buffer)
+    SecureKMSService->>GCPKMS: asymmetricSign(message, kmsKeyId, algorithm: ED25519)
+    Note over GCPKMS: Computes SHA-512 hash, signs with 256-bit key, outputs 64-byte signature (R: 32 bytes, S: 32 bytes)
+    GCPKMS-->>SecureKMSService: 64-byte signature
+    SecureKMSService->>SecureKMSService: Validate signature length (64 bytes)
+    SecureKMSService-->>WalletService: Signed Transaction
+
+    %% Step 6: WalletService sends transaction to Solana
+    WalletService->>Solana: sendRawTransaction(signedTransaction) (HTTP POST, base58-encoded)
+    Note over Solana: Verifies 64-byte Ed25519 signature, broadcasts via UDP to validators
+    Solana-->>WalletService: Transaction signature (52-byte base58 string)
+    WalletService->>Redis: Cache tx (key: "tx:{signature}", 512-byte value, TTL: 3600s)
+    WalletService-->>Handler: TransferSolResponse(signature, txId)
+    Handler-->>Queue: Publish TransferSolResponse(signature)
+
+    %% Step 7: Observability and Metrics
+    WalletService->>TransactionMetrics: Record signAttempts, signDurationMs (64-bit counters)
+    TransactionMetrics->>ExpressServer: Expose /metrics (Prometheus, 256-byte scrape)
+    Handler->>Logger: Log processing details (correlationId: 128-bit, spanId: 64-bit)
+
+    %% Step 8: Cleanup and Security
+    Note over SecureKMSService: Private keys never leave GCP KMS, stored in HSM
+    Note over Handler: Rate limits enforced per user/operation, tokens refreshed every 60s
+    Note over WalletService: Metadata encrypted with AES-256-GCM, 128-bit tag for integrity
+```
 
 ## Architecture Overview
 
